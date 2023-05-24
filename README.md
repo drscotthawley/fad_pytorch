@@ -16,13 +16,14 @@ pip install fad_pytorch
 
 ## About
 
-Features:
+(Intended) Features:
 
 - runs in parallel on multiple GPUs
 - favors 48kHz sample rates
 - can use CLAP embeddings
 - favors ops in PyTorch instead of numpy
 - allows dataset access via WebDataSet (s3)
+- operates on CPU, CUDA, or MPS
 
 This is designed to be run as 3 command-line scripts in succession:
 
