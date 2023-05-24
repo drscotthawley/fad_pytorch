@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "fad_pytorch"
+  site-url: "https://drscotthawley.github.io/fad_pytorch"
+  description: "Frechet Audio Distance evaluation in PyTorch"
+  repo-branch: main
+  repo-url: "https://github.com/drscotthawley/fad_pytorch"
