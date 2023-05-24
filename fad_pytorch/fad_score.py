@@ -5,6 +5,7 @@ __all__ = ['score', 'main']
 
 # %% ../nbs/03_fad_score.ipynb 5
 import argparse
+from .sqrtm import sqrtm
 
 # %% ../nbs/03_fad_score.ipynb 6
 def score(real_emb_path='real_emb', fake_emb_path='fake_emb'): 

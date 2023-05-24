@@ -16,9 +16,14 @@ pip install fad_pytorch
 
 ## About
 
-Features: \* runs in parallel on multiple GPUs \* favors 48kHz sample
-rates \* can use CLAP embeddings \* favors ops in PyTorch instead of
-numpy \* allows dataset access via WebDataSet (s3)
+(Intended) Features:
+
+- runs in parallel on multiple GPUs
+- favors 48kHz sample rates
+- can use CLAP embeddings
+- favors ops in PyTorch instead of numpy
+- allows dataset access via WebDataSet (s3)
+- operates on CPU, CUDA, or MPS
 
 This is designed to be run as 3 command-line scripts in succession:
 
@@ -33,9 +38,8 @@ $$ FAD = || \mu_r - \mu_f ||^2 + tr\left(\Sigma_r + \Sigma_f - 2 \sqrt{\Sigma_r 
 ## Related Repos
 
 There are \[several\] others, but this one is mine. These repos didn’t
-have all the features I wanted, but I used them for inspiration: \*
-https://github.com/gudgud96/frechet-audio-distance \*
-https://github.com/google-research/google-research/tree/master/frechet_audio_distance
-\* https://github.com/AndreevP/speech_distances
+have all the features I wanted, but I used them for inspiration:
 
-Bulleted list: \* one \* two \* three
+- https://github.com/gudgud96/frechet-audio-distance
+- https://github.com/google-research/google-research/tree/master/frechet_audio_distance
+- https://github.com/AndreevP/speech_distances
