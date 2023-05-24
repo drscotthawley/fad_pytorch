@@ -5,4 +5,10 @@ d = { 'settings': { 'branch': 'main',
                 'doc_host': 'https://drscotthawley.github.io',
                 'git_url': 'https://github.com/drscotthawley/fad_pytorch',
                 'lib_path': 'fad_pytorch'},
-  'syms': {'fad_pytorch.core': {'fad_pytorch.core.foo': ('core.html#foo', 'fad_pytorch/core.py')}}}
+  'syms': { 'fad_pytorch.core': {'fad_pytorch.core.foo': ('core.html#foo', 'fad_pytorch/core.py')},
+            'fad_pytorch.fad_embed': { 'fad_pytorch.fad_embed.embed': ('fad_embed.html#embed', 'fad_pytorch/fad_embed.py'),
+                                       'fad_pytorch.fad_embed.main': ('fad_embed.html#main', 'fad_pytorch/fad_embed.py')},
+            'fad_pytorch.fad_gen': { 'fad_pytorch.fad_gen.gen': ('fad_gen.html#gen', 'fad_pytorch/fad_gen.py'),
+                                     'fad_pytorch.fad_gen.main': ('fad_gen.html#main', 'fad_pytorch/fad_gen.py')},
+            'fad_pytorch.fad_score': { 'fad_pytorch.fad_score.main': ('fad_score.html#main', 'fad_pytorch/fad_score.py'),
+                                       'fad_pytorch.fad_score.score': ('fad_score.html#score', 'fad_pytorch/fad_score.py')}}}
