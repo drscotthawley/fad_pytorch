@@ -33,6 +33,7 @@ def calc_mu_sigma(emb):
 # %% ../nbs/03_fad_score.ipynb 10
 def calc_score(args, debug=False): 
     real_emb_path, fake_emb_path = args.real_emb_path, args.fake_emb_path
+    print(f"Calculating FAD score for files in {real_emb_path}/ vs {fake_emb_path}/")
     emb_real = read_embeddings(emb_path=real_emb_path, debug=debug)
     emb_fake = read_embeddings(emb_path=fake_emb_path, debug=debug)
     if debug: print(emb_real.shape, emb_fake.shape)
@@ -66,7 +67,8 @@ def main():
     parser.add_argument('real_emb_path', help='Path of files of embeddings of real data', default='real_emb_clap/')
     parser.add_argument('fake_emb_path', help='Path of files of embeddings of fake data', default='fake_emb_clap/')
     args = parser.parse_args()
-    score( args )
+    score = calc_score( args )
+    print("FAD score = ",score.cpu().numpy())
 
 # %% ../nbs/03_fad_score.ipynb 13
 if __name__ == '__main__' and "get_ipython" not in dir():
