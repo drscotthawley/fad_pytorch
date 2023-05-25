@@ -40,9 +40,8 @@ def setup_embedder(model_choice, device):
     return embedder
 
 
-
 def embed_all(args): 
-    model_choice, real_path, fake_path, chunk_size, sr, batch_size = args.embed_model, args.real_path, args.fake_path, args.chunk_size, args.sr, args.batch_size
+    model_choice, real_path, fake_path, chunk_size, sr, max_batch_size = args.embed_model, args.real_path, args.fake_path, args.chunk_size, args.sr, args.batch_size
     local_rank = int(os.environ.get("LOCAL_RANK", 0))
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     ddps = f"[{local_rank}/{world_size}]"  # string for distributed computing info, e.g. "[1/8]" 
@@ -78,12 +77,14 @@ def embed_all(args):
 
     real_dataset = AudioDataset(real_path, augs='Stereo(), PhaseFlipper()', sample_size=chunk_size, return_dict=True)
     fake_dataset = AudioDataset(fake_path, augs='Stereo(), PhaseFlipper()', sample_size=chunk_size, return_dict=True)
-    real_dl = DataLoader(real_dataset, batch_size=16, shuffle=False)
-    fake_dl = DataLoader(fake_dataset, batch_size=16, shuffle=False)
+    batch_size = min( len(real_dataset) // world_size , max_batch_size ) 
+    hprint(f"\nGiven max_batch_size = {max_batch_size}, len(real_dataset) = {len(real_dataset)}, and world_size = {world_size}, we'll use batch_size = {batch_size}")
+    real_dl = DataLoader(real_dataset, batch_size=batch_size, shuffle=False)
+    fake_dl = DataLoader(fake_dataset, batch_size=batch_size, shuffle=False)
     
     real_dl, fake_dl, embedder = accelerator.prepare( real_dl, fake_dl, embedder )  # prepare handles distributing things among GPUs
     
-    # note that we don't actually care if real & fake files are pulled in the same order; we'll be comparing the *distributions* of the data.
+    # note that we don't actually care if real & fake files are pulled in the same order; we'll only be comparing the *distributions* of the data.
     for dl, name in zip([real_dl, fake_dl],['real','fake']):
         newdir_already = False
         for i, data_dict in enumerate(dl):
@@ -100,7 +101,8 @@ def embed_all(args):
             while len(audio.shape) < 3: 
                 audio = audio.unsqueeze(0) # add batch and/or channel dims 
                 
-            embeddings = embedder.get_audio_embedding_from_data(audio.mean(dim=1).to(device), use_tensor=True).to(audio.dtype)
+            with torch.no_grad():
+                embeddings = embedder.get_audio_embedding_from_data(audio.mean(dim=1).to(device), use_tensor=True).to(audio.dtype)
             hprint(f"embeddings.shape = {embeddings.shape}")
             # TODO: for now we'll just dump each batch on each proc to its own file; this could be improved
             outfilename = f"{newdir}/emb_p{local_rank}_b{i}.pt"
@@ -115,7 +117,7 @@ def main():
     parser.add_argument('real_path', help='Path of files of real audio', default='real/')
     parser.add_argument('fake_path', help='Path of files of fake audio', default='fake/')
     parser.add_argument('--chunk_size', type=int, default=24000, help='Length of chunks (in audio samples) to embed')
-    parser.add_argument('--batch_size', type=int, default=16, help='Batch size for computing embeddings')
+    parser.add_argument('--batch_size', type=int, default=64, help='MAXIMUM Batch size for computing embeddings (may go smaller)')
     parser.add_argument('--sr', type=int, default=48000, help='sample rate (will resample inputs at this rate)')
     args = parser.parse_args()
     embed_all(args)
