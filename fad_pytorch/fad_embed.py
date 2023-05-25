@@ -92,7 +92,7 @@ def embed_all(args):
             if not newdir_already: 
                 p = Path( filename_batch[0] )
                 dir_already = True
-                newdir = str(p.parents[0])+"_emb"
+                newdir = f"{p.parents[0]}_emb_{model_choice}"
                 hprint(f"newdir = {newdir}")
                 makedir(newdir) 
                 
@@ -107,7 +107,7 @@ def embed_all(args):
             # TODO: for now we'll just dump each batch on each proc to its own file; this could be improved
             outfilename = f"{newdir}/emb_p{local_rank}_b{i}.pt"
             print(f"{ddps} Saving embeddings to {outfilename}")
-            torch.save(embeddings, outfilename)
+            torch.save(embeddings.cpu(), outfilename)
             
 
 # %% ../nbs/02_fad_embed.ipynb 7

@@ -192,5 +192,5 @@ SOFTWARE.
 # %% ../nbs/04_sqrtm.ipynb 26
 def sqrtm(A, numIters=7):
     "wrapper function for matrix sqrt algorithm of choice: sqrt_newton_schulz. Also we'll turn off all gradients"
-    with torch.zero_grad():
-        return sqrt_newton_schulz(A, numIters=numIters, calc_error=False)
+    with torch.no_grad():
+        return sqrt_newton_schulz(A, numIters=numIters, calc_error=False).squeeze()  # get rid of any useless batch dimensions
