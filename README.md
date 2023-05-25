@@ -7,9 +7,6 @@ fad_pytorch
 
 ## Install
 
-Work in progress. If you’re just finding this repo on GitHub, it may not
-be ready yet.
-
 ``` sh
 pip install fad_pytorch
 ```
@@ -19,19 +16,21 @@ pip install fad_pytorch
 (Intended) Features:
 
 - runs in parallel on multiple GPUs
-- favors 48kHz sample rates
-- can use CLAP embeddings
+- supports 48kHz sample rates and stereo when possible
+- supports CLAP embeddings, in addition to VGGish and PANN
 - favors ops in PyTorch instead of numpy
 - allows dataset access via WebDataset (over s3://)
-- operates on CPU, CUDA, or MPS
+- runs on CPU, CUDA, or MPS
 
-This is designed to be run as 3 command-line scripts in succession:
+This is designed to be run as 3 command-line scripts in succession. The
+latter 2 (`fad_embed` and `fad_score`) are probably what most people
+will want:
 
-1.  `fad_gen.py`: produces directories of real & fake audio
-2.  `fad_embed.py`: produces directories of *embeddings* of real & fake
-    audio
-3.  `fad_score.py`: reads the embeddings & generates FAD score, for real
-    (“$r$”) and fake (“$f$”):
+1.  `fad_gen`: produces directories of real & fake audio
+2.  `fad_embed <real_audio_dir> <fake_audio_dir>`: produces directories
+    of *embeddings* of real & fake audio
+3.  `fad_score <real_emb_dir> <fake_emb_dir>`: reads the embeddings &
+    generates FAD score, for real (“$r$”) and fake (“$f$”):
 
 $$ FAD = || \mu_r - \mu_f ||^2 + tr\left(\Sigma_r + \Sigma_f - 2 \sqrt{\Sigma_r \Sigma_f}\right)$$
 

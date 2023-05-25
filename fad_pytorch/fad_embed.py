@@ -17,7 +17,7 @@ from aeiou.datasets import AudioDataset
 from aeiou.hpc import HostPrinter
 from torch.utils.data import DataLoader
 from pathlib import Path
-from pann import Cnn14_16k
+from .pann import Cnn14_16k
 
 
 # %% ../nbs/02_fad_embed.ipynb 5

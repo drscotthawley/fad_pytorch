@@ -33,7 +33,7 @@ def calc_mu_sigma(emb):
 # %% ../nbs/03_fad_score.ipynb 10
 def calc_score(args, debug=False): 
     real_emb_path, fake_emb_path = args.real_emb_path, args.fake_emb_path
-    print(f"Calculating FAD score for files in {real_emb_path}/ vs {fake_emb_path}/")
+    print(f"Calculating FAD score for files in {real_emb_path}/ vs. {fake_emb_path}/")
     emb_real = read_embeddings(emb_path=real_emb_path, debug=debug)
     emb_fake = read_embeddings(emb_path=fake_emb_path, debug=debug)
     if debug: print(emb_real.shape, emb_fake.shape)
