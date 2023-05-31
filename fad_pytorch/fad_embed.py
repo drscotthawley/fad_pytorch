@@ -26,7 +26,8 @@ except:
 # %% ../nbs/02_fad_embed.ipynb 6
 def setup_embedder(
         model_choice='clap', # 'clap' | 'vggish' | 'pann'
-        device='cuda',              
+        device='cuda',
+        accelerator=None,
     ):
     "load the embedder model"
     embedder = None
@@ -35,11 +36,13 @@ def setup_embedder(
         clap_fusion, clap_amodel = True, "HTSAT-base"
         #doesn't work:  warnings.filterwarnings('ignore')  # temporarily disable CLAP warnings as they are super annoying. 
         clap_module = laion_clap.CLAP_Module(enable_fusion=clap_fusion, device=device, amodel=clap_amodel).requires_grad_(False).eval()
-        clap_ckpt_path = os.environ['CLAP_CKPT']  # you'll need access to this .ckpt file
-        if clap_ckpt_path:
+        clap_ckpt_path = os.getenv('CLAP_CKPT')  # you'll need access to this .ckpt file
+        if clap_ckpt_path is not None:
             #print(f"Loading CLAP from {clap_ckpt_path}")
             clap_module.load_ckpt(ckpt=clap_ckpt_path, verbose=False)
         else:
+            if accelerator is None or accelerator.is_main_process: print("No CLAP checkpoint specified, going with default") 
+            clap_module = laion_clap.CLAP_Module(enable_fusion=False)
             clap_module.load_ckpt(model_id=1, verbose=False)
         #warnings.filterwarnings("default")   # turn warnings back on. 
         embedder = clap_module # synonyms 
@@ -127,7 +130,7 @@ def embed_all(args):
     """
 
     # setup embedder and dataloader
-    embedder, emb_sample_rate = setup_embedder(model_choice, device)
+    embedder, emb_sample_rate = setup_embedder(model_choice, device, accelerator)
     if sr != emb_sample_rate:
         hprint(f"\n*******\nWARNING: sr={sr} != {model_choice}'s emb_sample_rate={emb_sample_rate}. Will resample audio to the latter\n*******\n")
         sr = emb_sample_rate
