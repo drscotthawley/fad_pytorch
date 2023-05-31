@@ -9,7 +9,7 @@ import torch
 from torch.autograd import Function, Variable
 
 # %% ../nbs/04_sqrtm.ipynb 6
-use_li = False  # come back and turn this on if you want to see/use the full code
+use_li = True  # come back and turn this on if you want to see/use the full code
 
 if use_li:      # lighten the load of imports since we won't use li's in production
     import numpy as np
@@ -86,8 +86,8 @@ def compute_error(A, sA):
 
 
 def sqrt_newton_schulz_autograd(A, 
-                                numIters=7, # 7 found experimentally by SHH, comparing w/ Li's method
-                               ):
+                                numIters=20, # found experimentally by SHH, comparing w/ Li's method
+                                calc_error=False,):
     """Modified from from https://people.cs.umass.edu/~smaji/projects/matrix-sqrt/
     "The drawback of the autograd approach [i.e., this approach] is that a naive implementation stores all the intermediate results. 
     Thus the memory overhead scales linearly with the number of iterations which is problematic for large matrices."
@@ -109,13 +109,15 @@ def sqrt_newton_schulz_autograd(A,
         Z = T.bmm(Z)
     
     sA = Y*torch.sqrt(normA).view(batchSize, 1, 1).expand_as(A)
-    error = compute_error(A, sA)
-    return sA, error
+    if calc_error:
+        error = compute_error(A, sA)
+        return sA, error
+    return sA
 
 
 def sqrt_newton_schulz(A,               # matrix to be sqrt-ified
-                       numIters=7,      # numIters=7 found via experimentation
-                       calc_error=True, # setting False disables Maji's error reporting
+                       numIters=20,      # numIters=7 found via experimentation
+                       calc_error=False, # setting False disables Maji's error reporting
                       ):
     """
     Sqrt of matrix via Newton-Schulz algorithm
@@ -189,8 +191,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-# %% ../nbs/04_sqrtm.ipynb 26
-def sqrtm(A, numIters=7):
-    "wrapper function for matrix sqrt algorithm of choice: sqrt_newton_schulz. Also we'll turn off all gradients"
+# %% ../nbs/04_sqrtm.ipynb 27
+def sqrtm(A, method='maji', numIters=20):
+    "wrapper function for matrix sqrt algorithm of choice. Also we'll turn off all gradients"
     with torch.no_grad():
-        return sqrt_newton_schulz(A, numIters=numIters, calc_error=False).squeeze()  # get rid of any useless batch dimensions
+        if method=='maji':
+            return sqrt_newton_schulz(A, numIters=numIters, calc_error=False).squeeze()  # get rid of any useless batch dimensions
+        elif method=='li': 
+            return sqrtm_li(A)
+        else:
+            raise ValueError(f"Invalid method: {method}") 

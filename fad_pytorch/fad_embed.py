@@ -3,7 +3,7 @@
 # %% auto 0
 __all__ = ['GUDGUD_LICENSE', 'setup_embedder', 'embed_all', 'main']
 
-# %% ../nbs/02_fad_embed.ipynb 4
+# %% ../nbs/02_fad_embed.ipynb 5
 import os
 import argparse
 import laion_clap 
@@ -17,10 +17,13 @@ from aeiou.datasets import AudioDataset
 from aeiou.hpc import HostPrinter
 from torch.utils.data import DataLoader
 from pathlib import Path
-from .pann import Cnn14_16k
 
+try:
+    from fad_pytorch.pann import Cnn14_16k
+except: 
+    from pann import Cnn14_16k
 
-# %% ../nbs/02_fad_embed.ipynb 5
+# %% ../nbs/02_fad_embed.ipynb 6
 def setup_embedder(
         model_choice='clap', # 'clap' | 'vggish' | 'pann'
         device='cuda',              
@@ -91,7 +94,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-# %% ../nbs/02_fad_embed.ipynb 7
+# %% ../nbs/02_fad_embed.ipynb 8
 def embed_all(args): 
     model_choice, real_path, fake_path, chunk_size, sr, max_batch_size = args.embed_model, args.real_path, args.fake_path, args.chunk_size, args.sr, args.batch_size
     local_rank = int(os.environ.get("LOCAL_RANK", 0))
@@ -100,7 +103,7 @@ def embed_all(args):
 
     accelerator = Accelerator()
     hprint = HostPrinter(accelerator)  # hprint only prints on head node
-    device = accelerator.device  # get_device()
+    device = accelerator.device    # get_device()
     hprint(f"{ddps} args = {args}")
     hprint(f'{ddps} Using device: {device}')
     

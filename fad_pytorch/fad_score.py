@@ -31,8 +31,11 @@ def calc_mu_sigma(emb):
     return mu, sigma
 
 # %% ../nbs/03_fad_score.ipynb 10
-def calc_score(args, debug=False): 
-    real_emb_path, fake_emb_path = args.real_emb_path, args.fake_emb_path
+def calc_score(real_emb_path, # where real embeddings are stored
+               fake_emb_path, # where fake embeddings are stored
+               method='maji', # sqrtm calc method: 'maji'|'li'
+               debug=False
+               ): 
     print(f"Calculating FAD score for files in {real_emb_path}/ vs. {fake_emb_path}/")
     emb_real = read_embeddings(emb_path=real_emb_path, debug=debug)
     emb_fake = read_embeddings(emb_path=fake_emb_path, debug=debug)
@@ -44,32 +47,35 @@ def calc_score(args, debug=False):
         print("mu_real.shape, sigma_real.shape =",mu_real.shape, sigma_real.shape)
         print("mu_fake.shape, sigma_fake.shape =",mu_fake.shape, sigma_fake.shape)
     
-    diff = mu_real - mu_fake
+    mu_diff = mu_real - mu_fake
     if debug:
-        print("diff = ",diff) 
-        score1 = diff.dot(diff)
-        print("score1 = ",score1)
+        print("mu_diff = ",mu_diff) 
+        score1 = mu_diff.dot(mu_diff)
+        print("score1: mu_diff.dot(mu_diff) = ",score1)
         score2 = torch.trace(sigma_real)
-        print("score2 = ", score2)
+        print("score2: torch.trace(sigma_real) = ", score2)
         score3 = torch.trace(sigma_fake)
-        print("score3 = ",score3)
+        print("score3: torch.trace(sigma_fake) = ",score3)
         score_p = sqrtm( torch.matmul( sigma_real, sigma_fake) )
-        print("score_p.shape = ",score_p.shape) 
-        score4 = -2* torch.trace ( torch.real ( sqrtm( torch.matmul( sigma_real, sigma_fake)  ) ) )
-        print("score4 = ",score4) 
+        print("score_p.shape (matmul) = ",score_p.shape) 
+        score4 = -2* torch.trace ( torch.real ( sqrtm( torch.matmul( sigma_real, sigma_fake) , method=method ) ) )
+        print("score4 (-2*tr(sqrtm(matmul(sigma_r sigma_f))))  = ",score4) 
         score = score1 + score2 + score3 + score4
-    score = diff.dot(diff) + torch.trace(sigma_real) + torch.trace(sigma_fake) -2* torch.trace ( torch.real ( sqrtm( torch.matmul( sigma_real, sigma_fake)  ) ) )
+    score = mu_diff.dot(mu_diff) + torch.trace(sigma_real) + torch.trace(sigma_fake) -2* torch.trace ( torch.real ( sqrtm( torch.matmul( sigma_real, sigma_fake), method=method  ) ) )
     return score
 
-# %% ../nbs/03_fad_score.ipynb 12
+# %% ../nbs/03_fad_score.ipynb 16
 def main(): 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('real_emb_path', help='Path of files of embeddings of real data', default='real_emb_clap/')
     parser.add_argument('fake_emb_path', help='Path of files of embeddings of fake data', default='fake_emb_clap/')
+    parser.add_argument('-d','--debug', action='store_true', help='Enable debugging')
+    parser.add_argument('-m','--method', default='maji', help='Method for sqrtm calculation: "maji" or "li" ')
+
     args = parser.parse_args()
-    score = calc_score( args )
+    score = calc_score( args.real_emb_path, args.fake_emb_path, method=args.method, debug=args.debug )
     print("FAD score = ",score.cpu().numpy())
 
-# %% ../nbs/03_fad_score.ipynb 13
+# %% ../nbs/03_fad_score.ipynb 17
 if __name__ == '__main__' and "get_ipython" not in dir():
     main()
