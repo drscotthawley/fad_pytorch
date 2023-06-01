@@ -34,6 +34,42 @@ will want:
 
 $$ FAD = || \mu_r - \mu_f ||^2 + tr\left(\Sigma_r + \Sigma_f - 2 \sqrt{\Sigma_r \Sigma_f}\right)$$
 
+## FAQ / Troubleshooting
+
+- “`RuntimeError: CUDA error: invalid device ordinal`”: This happens
+  when you have a “bad node” on an AWS cluster. [Haven’t yet figured out
+  what causes it or how to fix
+  it](https://discuss.huggingface.co/t/solved-accelerate-accelerator-cuda-error-invalid-device-ordinal/21509/1).
+  Workaround: Just add the current node to your SLURM `--exclude` list,
+  exit and retry. Note: it may take as many as 5 to 7 retries before you
+  get a “good node”.
+
+## Contributing
+
+This repo is still fairly “bare bones” and will benefit from more
+documentation and features as time goes on. Note that it is written
+using [nbdev](https://nbdev.fast.ai/), so the things to are:
+
+1.  fork this repo
+2.  clone your fork to your (local) machine
+3.  Install nbdev: `python3 -m pip install -U nbdev`
+4.  Make changes by editing the notebooks in `nbs/`, not the `.py` files
+    in `fad_pytorch/`.
+5.  Run `nbdev_export` to export notebook changes to `.py` files
+6.  For good measure, run `nbdev_install_hooks` and `nbdev_clean` -
+    especially if you’ve *added* any notebooks.
+7.  Do a `git status` to see all the `.ipynb` and `.py` files that need
+    to be added & committed
+8.  `git add` those files and then `git commit`, and then `git push`
+9.  Take a look in your GitHub Actions tab, and see if the “test” and
+    “deploy” CI runs finish properly (green light) or fail (red light)
+10. One you get green lights, send in a Pull Request!
+
+*Feel free to ask me for tips with nbdev, it has quite a learning curve.
+You can also ask on [fast.ai forums](https://forums.fast.ai/) and/or
+[fast.ai
+Discord](https://discord.com/channels/689892369998676007/887694559952400424)*
+
 ## Related Repos
 
 There are \[several\] others, but this one is mine. These repos didn’t
