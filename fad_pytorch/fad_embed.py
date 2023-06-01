@@ -186,7 +186,7 @@ def embed(args):
     real_filenames, fake_filenames = real_filenames[start:end], fake_filenames[start:end]
     """
 
-    model_choices = [model_choice] if model_choice != 'all' else ['clap','vggish','pann']
+    model_choices = [model_choice] if model_choice != 'all' else ['clap','vggish','pann','openl3']
     
     for model_choice in model_choices: # loop over multiple embedders
         hprint(f"\n ** Model_choice = {model_choice}")
@@ -268,7 +268,7 @@ def embed(args):
 # %% ../nbs/02_fad_embed.ipynb 11
 def main(): 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('embed_model', help='choice of embedding model(s): clap | vggish | pann | all ', default='clap')
+    parser.add_argument('embed_model', help='choice of embedding model(s): clap | vggish | pann | openl3 | all ', default='clap')
     parser.add_argument('real_path', help='Path of files of real audio', default='real/')
     parser.add_argument('fake_path', help='Path of files of fake audio', default='fake/')
     parser.add_argument('--chunk_size', type=int, default=24000, help='Length of chunks (in audio samples) to embed')
