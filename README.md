@@ -13,28 +13,31 @@ pip install fad_pytorch
 
 ## About
 
-(Intended) Features:
+Features:
 
-- runs in parallel on multiple GPUs
-- supports 48kHz sample rates and stereo when possible
-- supports CLAP embeddings, in addition to VGGish and PANN
-- favors ops in PyTorch instead of numpy
-- allows dataset access via WebDataset (over s3://)
+- runs in parallel on multiple processors and multiple GPUs (via
+  `accelerate`)
+- supports multiple embedding methods:
+  - VGGish and PANN, both mono @ 16kHz
+  - OpenL3 and (LAION-)CLAP, stereo @ 48kHz
+- favors ops in PyTorch rather than numpy (or tensorflow)
+- `fad_gen` supports WebDataset (audio data stored in S3 buckets)
 - runs on CPU, CUDA, or MPS
 
 This is designed to be run as 3 command-line scripts in succession. The
 latter 2 (`fad_embed` and `fad_score`) are probably what most people
 will want:
 
-1.  `fad_gen`: produces directories of real & fake audio
-2.  `fad_embed <real_audio_dir> <fake_audio_dir>`: produces directories
-    of *embeddings* of real & fake audio
-3.  `fad_score <real_emb_dir> <fake_emb_dir>`: reads the embeddings &
-    generates FAD score, for real (“$r$”) and fake (“$f$”):
+1.  `fad_gen`: produces directories of real & fake audio. See
+    `fad_gen docs` for calling sequence.
+2.  `fad_embed [options] <real_audio_dir> <fake_audio_dir>`: produces
+    directories of *embeddings* of real & fake audio
+3.  `fad_score [optoions] <real_emb_dir> <fake_emb_dir>`: reads the
+    embeddings & generates FAD score, for real (“$r$”) and fake (“$f$”):
 
 $$ FAD = || \mu_r - \mu_f ||^2 + tr\left(\Sigma_r + \Sigma_f - 2 \sqrt{\Sigma_r \Sigma_f}\right)$$
 
-## FAQ / Troubleshooting
+## Comments / FAQ / Troubleshooting
 
 - “`RuntimeError: CUDA error: invalid device ordinal`”: This happens
   when you have a “bad node” on an AWS cluster. [Haven’t yet figured out
@@ -43,6 +46,14 @@ $$ FAD = || \mu_r - \mu_f ||^2 + tr\left(\Sigma_r + \Sigma_f - 2 \sqrt{\Sigma_r 
   Workaround: Just add the current node to your SLURM `--exclude` list,
   exit and retry. Note: it may take as many as 5 to 7 retries before you
   get a “good node”.
+- “FAD scores obtained from different embedding methods are *wildly*
+  different!” …Yea. It’s not obvious that scores from different
+  embedding methods should be comparable. Rather, compare different
+  groups of audio files using the same embedding method, and/or check
+  that FAD scores go *down* as similarity improves.
+- “FAD score for the same dataset repeated (twice) is not exactly zero!”
+  …Yea. There seems to be an uncertainty of around +/- 0.008. I’d say,
+  don’t quote any numbers past the first decimal point.
 
 ## Contributing
 

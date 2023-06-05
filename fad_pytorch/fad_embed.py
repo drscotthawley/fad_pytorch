@@ -6,6 +6,7 @@ __all__ = ['OPENL3_VERSION', 'GUDGUD_LICENSE', 'download_file', 'download_if_nee
 
 # %% ../nbs/02_fad_embed.ipynb 5
 import os
+import numpy as np
 import argparse
 import laion_clap 
 from laion_clap.training.data import get_audio_features
@@ -81,6 +82,7 @@ def setup_embedder(
     
     sample_rate = 16000
     if model_choice == 'clap':
+        print(f"Starting basic CLAP setup")
         clap_fusion, clap_amodel = True, "HTSAT-base"
         #doesn't work:  warnings.filterwarnings('ignore')  # temporarily disable CLAP warnings as they are super annoying. 
         clap_module = laion_clap.CLAP_Module(enable_fusion=clap_fusion, device=device, amodel=clap_amodel).requires_grad_(False).eval()
@@ -165,6 +167,7 @@ SOFTWARE.
 # %% ../nbs/02_fad_embed.ipynb 10
 def embed(args): 
     model_choice, real_path, fake_path, chunk_size, sr, max_batch_size, debug = args.embed_model, args.real_path, args.fake_path, args.chunk_size, args.sr, args.batch_size, args.debug
+    
     sample_rate = sr
     local_rank = int(os.environ.get("LOCAL_RANK", 0))
     world_size = int(os.environ.get("WORLD_SIZE", 1))
@@ -200,14 +203,16 @@ def embed(args):
     for model_choice in model_choices: # loop over multiple embedders
         hprint(f"\n ** Model_choice = {model_choice}")
         # setup embedder and dataloader
-        embedder, emb_sample_rate = setup_embedder(model_choice, device, accelerator)
+        embedder, emb_sample_rate = setup_embedder(model_choice, device=device, accelerator=accelerator)
         if sr != emb_sample_rate:
             hprint(f"\n*******\nWARNING: sr={sr} != {model_choice}'s emb_sample_rate={emb_sample_rate}. Will resample audio to the latter\n*******\n")
             sr = emb_sample_rate
         hprint(f"{ddps} Embedder '{model_choice}' ready to go!")
 
-        real_dataset = AudioDataset(real_path, augs='Stereo(), PhaseFlipper()', sample_rate=emb_sample_rate, sample_size=chunk_size, return_dict=True, verbose=args.verbose)
-        fake_dataset = AudioDataset(fake_path, augs='Stereo(), PhaseFlipper()', sample_rate=emb_sample_rate, sample_size=chunk_size, return_dict=True, verbose=args.verbose)
+        # we read audio in length args.sample_size, cut it into chunks of args,chunk_size to embed, and skip args.hop_size between chunks
+        # pads with zeros btw
+        real_dataset = AudioDataset(real_path,  sample_rate=emb_sample_rate, sample_size=args.sample_size, return_dict=True, verbose=args.verbose)
+        fake_dataset = AudioDataset(fake_path,  sample_rate=emb_sample_rate, sample_size=args.sample_size, return_dict=True, verbose=args.verbose)
         batch_size = min( len(real_dataset) // world_size , max_batch_size ) 
         hprint(f"\nGiven max_batch_size = {max_batch_size}, len(real_dataset) = {len(real_dataset)}, and world_size = {world_size}, we'll use batch_size = {batch_size}")
         real_dl = DataLoader(real_dataset, batch_size=batch_size, shuffle=False)
@@ -217,66 +222,77 @@ def embed(args):
 
         # note that we don't actually care if real & fake files are pulled in the same order; we'll only be comparing the *distributions* of the data.
         with torch.no_grad():
-            for dl, name in zip([real_dl, fake_dl],['real','fake']):
-                newdir_already = False
-                for i, data_dict in enumerate(dl):
-                    audio, filename_batch = data_dict['inputs'], data_dict['filename']
+            for dl, name in zip([real_dl, fake_dl],['real','fake']):  
+                for i, data_dict in enumerate(dl):  # load audio files
+                    audio_sample_batch, filename_batch = data_dict['inputs'], data_dict['filename']
+                    newdir_already = False
                     if not newdir_already: 
                         p = Path( filename_batch[0] )
                         dir_already = True
                         newdir = f"{p.parents[0]}_emb_{model_choice}"
-                        hprint(f"newdir = {newdir}")
+                        hprint(f"creating new directory = {newdir}")
                         makedir(newdir) 
-
-                    #print(f"{ddps} i = {i}/{len(real_dataset)}, filename = {filename_batch[0]}")
-                    audio = audio.to(device)
-
-
-                    if model_choice == 'clap': 
-                        while len(audio.shape) < 3: 
-                            audio = audio.unsqueeze(0) # add batch and/or channel dims 
-                        embeddings = embedder.get_audio_embedding_from_data(audio.mean(dim=1).to(device), use_tensor=True).to(audio.dtype)
-
-                    elif model_choice == "vggish":
-                        audio = torch.mean(audio, dim=1)   # vggish requries we convert to mono
-                        embeddings = []                    # ...whoa, vggish can't even handle batches?  we have to pass 'em through singly?
-                        for bi, waveform in enumerate(audio): 
-                            e = embedder.forward(waveform.cpu().numpy(), emb_sample_rate)
-                            embeddings.append(e) 
-                        embeddings = torch.cat(embeddings, dim=0)
-
-                    elif model_choice == "pann": 
-                        audio = torch.mean(audio, dim=1)  # mono only.  todo:  keepdim=True ?
-                        out = embedder.forward(audio, None)
-                        embeddings = out['embedding'].data
+                        newdir_already = True
+                    # cut audio samples into chunks spaced out by hops, and loop over them
+                    hop_samples = int(args.hop_size * args.sample_size)
+                    hop_starts = np.arange(0, args.sample_size, hop_samples)
+                    if args.max_hops <= 0:  
+                        hop_starts = hop_starts[:min(len(hop_starts), args.max_hops)]
+                    if args.sample_size - hop_starts[-1] < args.hop_size: # judgement call: let's not zero-pad on the very end, rather just don't do the last hop
+                        hop_starts = hop_starts[:-1]
+                    for h_ind, hop_loc in enumerate(hop_starts):               # proceed through audio file batch via chunks, skipping by hop_samples each time
+                        chunk = audio_sample_batch[:,:,hop_loc:hop_loc+hop_samples]
+                        audio = chunk 
                         
-                    elif model_choice == "openl3" and OPENL3_VERSION == "hugo":
-                        ##audio = torch.mean(audio, dim=1)  # mono only.
-                        embeddings = []
-                        for bi, waveform in enumerate( audio.cpu().numpy() ): # no batch processing, expects numpy 
-                            e = torchopenl3.embed(model=embedder, 
-                                audio=waveform, # shape sould be (channels, samples)
-                                sample_rate=emb_sample_rate, # sample rate of input file
-                                hop_size=1,  device=device)
-                            if debug: hprint(f"bi = {bi}, waveform.shape = {waveform.shape},  e.shape = {e.shape}") 
-                            embeddings.append(torch.tensor(e))
-                        embeddings = torch.cat(embeddings, dim=0)
-                        
-                    elif model_choice == "openl3" and OPENL3_VERSION == "turian":
-                        # Note: turian's can/will do multiple time-stamped embeddings if the sample_size is long enough! 
-                        
-                        audio = rearrange(audio, 'b c s -> b s c')  # make channels_first
-                        embeddings, timestamps = torchopenl3.get_audio_embedding(audio, emb_sample_rate, model=embedder)
-                        embeddings = torch.squeeze(embeddings, 1)  # get rid of any spurious dimensions of 1 in middle position 
-                        
-                    else:
-                        raise ValueError(f"Unknown model_choice = {model_choice}")
+                        #print(f"{ddps} i = {i}/{len(real_dataset)}, filename = {filename_batch[0]}")
+                        audio = audio.to(device)
 
-                    hprint(f"embeddings.shape = {embeddings.shape}")
-                    # TODO: for now we'll just dump each batch on each proc to its own file; this could be improved
-                    outfilename = f"{newdir}/emb_p{local_rank}_b{i}.pt"
-                    hprint(f"{ddps} Saving embeddings to {outfilename}")
-                    torch.save(embeddings.cpu().detach(), outfilename)
+
+                        if model_choice == 'clap': 
+                            while len(audio.shape) < 3: 
+                                audio = audio.unsqueeze(0) # add batch and/or channel dims 
+                            embeddings = accelerator.unwrap_model(embedder).get_audio_embedding_from_data(audio.mean(dim=1).to(device), use_tensor=True).to(audio.dtype)
+
+                        elif model_choice == "vggish":
+                            audio = torch.mean(audio, dim=1)   # vggish requries we convert to mono
+                            embeddings = []                    # ...whoa, vggish can't even handle batches?  we have to pass 'em through singly?
+                            for bi, waveform in enumerate(audio): 
+                                e =  accelerator.unwrap_model(embedder).forward(waveform.cpu().numpy(), emb_sample_rate)
+                                embeddings.append(e) 
+                            embeddings = torch.cat(embeddings, dim=0)
+
+                        elif model_choice == "pann": 
+                            audio = torch.mean(audio, dim=1)  # mono only.  todo:  keepdim=True ?
+                            out = embedder.forward(audio, None)
+                            embeddings = out['embedding'].data
+
+                        elif model_choice == "openl3" and OPENL3_VERSION == "hugo":
+                            ##audio = torch.mean(audio, dim=1)  # mono only.
+                            embeddings = []
+                            for bi, waveform in enumerate( audio.cpu().numpy() ): # no batch processing, expects numpy 
+                                e = torchopenl3.embed(model=embedder, 
+                                    audio=waveform, # shape sould be (channels, samples)
+                                    sample_rate=emb_sample_rate, # sample rate of input file
+                                    hop_size=1,  device=device)
+                                if debug: hprint(f"bi = {bi}, waveform.shape = {waveform.shape},  e.shape = {e.shape}") 
+                                embeddings.append(torch.tensor(e))
+                            embeddings = torch.cat(embeddings, dim=0)
+
+                        elif model_choice == "openl3" and OPENL3_VERSION == "turian":
+                            # Note: turian's can/will do multiple time-stamped embeddings if the sample_size is long enough. but our chunks/hops precludes this
+
+                            #not needed, turns out: audio = renot needed, turns out: arrange(audio, 'b c s -> b s c')       # this torchopen3 expects channels-first ordering
+                            embeddings, timestamps = torchopenl3.get_audio_embedding(audio, emb_sample_rate, model=embedder)
+                            embeddings = torch.squeeze(embeddings, 1)        # get rid of any spurious dimensions of 1 in middle position 
+
+                        else:
+                            raise ValueError(f"Unknown model_choice = {model_choice}")
+
+                        hprint(f"embeddings.shape = {embeddings.shape}")
+                        # TODO: for now we'll just dump each batch on each proc to its own file; this could be improved
+                        outfilename = f"{newdir}/emb_p{local_rank}_b{i}_h{h_ind}.pt"
+                        hprint(f"{ddps} Saving embeddings to {outfilename}")
+                        torch.save(embeddings.cpu().detach(), outfilename)
                     
         del embedder
         torch.cuda.empty_cache()
@@ -289,8 +305,11 @@ def main():
     parser.add_argument('embed_model', help='choice of embedding model(s): clap | vggish | pann | openl3 | all ', default='clap')
     parser.add_argument('real_path', help='Path of files of real audio', default='real/')
     parser.add_argument('fake_path', help='Path of files of fake audio', default='fake/')
-    parser.add_argument('--chunk_size', type=int, default=24000, help='Length of chunks (in audio samples) to embed')
     parser.add_argument('--batch_size', type=int, default=64, help='MAXIMUM Batch size for computing embeddings (may go smaller)')
+    parser.add_argument('--sample_size', type=int, default=2**18, help='Number of audio samples to read from each audio file')
+    parser.add_argument('--chunk_size', type=int, default=24000, help='Length of chunks (in audio samples) to embed')
+    parser.add_argument('--hop_size', type=float, default=0.100, help='(approximate) time difference (in seconds) between each chunk')
+    parser.add_argument('--max_hops', type=int, default=-1, help="Don't exceed this many hops/chunks/embeddings per audio file. <= 0 disables this.")
     parser.add_argument('--sr', type=int, default=48000, help='sample rate (will resample inputs at this rate)')
     parser.add_argument('--verbose', action='store_true',  help='Show notices of resampling when reading files')
     parser.add_argument('--debug', action='store_true',  help='Extra messages for debugging this program')
