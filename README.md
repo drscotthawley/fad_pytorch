@@ -68,7 +68,7 @@ Website](https://drscotthawley.github.io/fad_pytorch/).
 
 This repo is still fairly “bare bones” and will benefit from more
 documentation and features as time goes on. Note that it is written
-using [nbdev](https://nbdev.fast.ai/), so the things to do oare:
+using [nbdev](https://nbdev.fast.ai/), so the things to do are:
 
 1.  Fork this repo
 2.  Clone your fork to your (local) machine
