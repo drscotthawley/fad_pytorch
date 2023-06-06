@@ -41,7 +41,7 @@ $$ FAD = || \mu_r - \mu_f ||^2 + tr\left(\Sigma_r + \Sigma_f - 2 \sqrt{\Sigma_r 
 ## Documentation
 
 See the [Documentation
-Website](https://drscotthawley.github.io/fad_pytorch/) for more.
+Website](https://drscotthawley.github.io/fad_pytorch/).
 
 ## Comments / FAQ / Troubleshooting
 
@@ -87,6 +87,19 @@ using [nbdev](https://nbdev.fast.ai/), so the things to do oare:
 You can also ask on [fast.ai forums](https://forums.fast.ai/) and/or
 [fast.ai
 Discord](https://discord.com/channels/689892369998676007/887694559952400424)*
+
+## Citations / Blame / Disclaimer
+
+This repo is less than 2 weeks old. I’m not ready for this to be cited
+in your papers. I’d hate for there to be some mistake I haven’t found
+yet. So… maybe a later version will have citation info. For now,
+instead, there’s:
+
+**Disclaimer:** Results from this repo are still a work in progress.
+While every effort has been made to test model outputs, the author takes
+no responsbility for mistakes. Best not to rely solely on this repo for
+FAD scores; rather you may want to double-check via another source. See
+“Related Repos” below.
 
 ## Related Repos
 
