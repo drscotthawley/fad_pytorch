@@ -18,6 +18,9 @@ pip install fad_pytorch
 - supports multiple embedding methods:
   - VGGish and PANN, both mono @ 16kHz
   - OpenL3 and (LAION-)CLAP, stereo @ 48kHz
+- uses publicly-available pretrained checkpoints for music (+other
+  sources) for those models. (if you want Speech, submit a PR or an
+  Issue; I don’t do speech.)
 - favors ops in PyTorch rather than numpy (or tensorflow)
 - `fad_gen` supports WebDataset (audio data stored in S3 buckets)
 - runs on CPU, CUDA, or MPS
