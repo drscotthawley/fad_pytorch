@@ -11,9 +11,7 @@ fad_pytorch
 pip install fad_pytorch
 ```
 
-## About
-
-Features:
+## Features:
 
 - runs in parallel on multiple processors and multiple GPUs (via
   `accelerate`)
@@ -24,18 +22,26 @@ Features:
 - `fad_gen` supports WebDataset (audio data stored in S3 buckets)
 - runs on CPU, CUDA, or MPS
 
+## Instructions:
+
 This is designed to be run as 3 command-line scripts in succession. The
 latter 2 (`fad_embed` and `fad_score`) are probably what most people
 will want:
 
-1.  `fad_gen`: produces directories of real & fake audio. See
-    `fad_gen docs` for calling sequence.
+1.  `fad_gen`: produces directories of real & fake audio. See `fad_gen`
+    [documentation](https://drscotthawley.github.io/fad_pytorch/fad_gen.html)
+    for calling sequence.
 2.  `fad_embed [options] <real_audio_dir> <fake_audio_dir>`: produces
     directories of *embeddings* of real & fake audio
-3.  `fad_score [optoions] <real_emb_dir> <fake_emb_dir>`: reads the
+3.  `fad_score [options] <real_emb_dir> <fake_emb_dir>`: reads the
     embeddings & generates FAD score, for real (“$r$”) and fake (“$f$”):
 
 $$ FAD = || \mu_r - \mu_f ||^2 + tr\left(\Sigma_r + \Sigma_f - 2 \sqrt{\Sigma_r \Sigma_f}\right)$$
+
+## Documentation
+
+See the [Documentation
+Website](https://drscotthawley.github.io/fad_pytorch/) for more.
 
 ## Comments / FAQ / Troubleshooting
 
@@ -59,10 +65,10 @@ $$ FAD = || \mu_r - \mu_f ||^2 + tr\left(\Sigma_r + \Sigma_f - 2 \sqrt{\Sigma_r 
 
 This repo is still fairly “bare bones” and will benefit from more
 documentation and features as time goes on. Note that it is written
-using [nbdev](https://nbdev.fast.ai/), so the things to are:
+using [nbdev](https://nbdev.fast.ai/), so the things to do oare:
 
-1.  fork this repo
-2.  clone your fork to your (local) machine
+1.  Fork this repo
+2.  Clone your fork to your (local) machine
 3.  Install nbdev: `python3 -m pip install -U nbdev`
 4.  Make changes by editing the notebooks in `nbs/`, not the `.py` files
     in `fad_pytorch/`.
@@ -72,9 +78,10 @@ using [nbdev](https://nbdev.fast.ai/), so the things to are:
 7.  Do a `git status` to see all the `.ipynb` and `.py` files that need
     to be added & committed
 8.  `git add` those files and then `git commit`, and then `git push`
-9.  Take a look in your GitHub Actions tab, and see if the “test” and
-    “deploy” CI runs finish properly (green light) or fail (red light)
-10. One you get green lights, send in a Pull Request!
+9.  Take a look in your fork’s GitHub Actions tab, and see if the “test”
+    and “deploy” CI runs finish properly (green light) or fail (red
+    light)
+10. Once you get green lights, send in a Pull Request!
 
 *Feel free to ask me for tips with nbdev, it has quite a learning curve.
 You can also ask on [fast.ai forums](https://forums.fast.ai/) and/or
