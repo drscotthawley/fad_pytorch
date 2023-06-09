@@ -11,7 +11,7 @@ import warnings
 import torch
 
 from aeiou.core import get_device, load_audio, get_audio_filenames, makedir
-from aeiou.datasets import get_wds_loader
+from aeiou.datasets import get_wds_loader, AudioDataset
 from aeiou.hpc import HostPrinter
 from pathlib import Path
 #from audio_algebra.given_models import StackedDiffAEWrapper
@@ -36,23 +36,31 @@ def gen(args):
     
     model_ckpt, data_sources, profiles, n = args.model_ckpt, args.data_sources, args.profiles,  args.n
     names = data_sources.split(' ')
-    hprint(f"names = {names}")
-    profiles = ast.literal_eval(profiles)
-    hprint(f"profiles = {profiles}")
-    
-    dl = get_wds_loader(
-        batch_size=args.batch_size,
-        s3_url_prefix=None,
-        sample_size=args.sample_size,
-        names=names,
-        sample_rate=args.sample_rate,
-        num_workers=args.num_workers,
-        recursive=True,
-        random_crop=True,
-        epoch_steps=10000,
-        profiles=profiles,
-    )
-    
+    #hprint(f"names = {names}")
+    local_data = False
+    if 's3://' in data_sources: 
+        hprint("Data sources are on S3")
+        profiles = ast.literal_eval(profiles)
+        hprint(f"profiles = {profiles}")
+
+        dl = get_wds_loader(
+            batch_size=args.batch_size,
+            s3_url_prefix=None,
+            sample_size=args.sample_size,
+            names=names,
+            sample_rate=args.sample_rate,
+            num_workers=args.num_workers,
+            recursive=True,
+            random_crop=True,
+            epoch_steps=10000,
+            profiles=profiles,
+        )
+    else:
+        hprint("Data sources are local")
+        dataset = AudioDataset(names, sample_rate=args.sample_rate, sample_size=args.sample_size)
+        dl = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, num_workers=args.num_workers)
+        local_data = True
+        
     print(f"loading {model_ckpt}....")
     if model_ckpt.endswith('.ts'):
         model = torch.jit.load(model_ckpt)
@@ -75,8 +83,8 @@ def gen(args):
     progress_bar = tqdm(range(math.ceil(args.n/args.batch_size)), disable=not accelerator.is_local_main_process)
 
     for i, data in enumerate(dl):
-        reals = data[0][0]
-        #hprint(f"{ddps} i = {i}, reals.shape = {reals.shape}")
+        reals = data if local_data else data[0][0]
+        if args.debug: hprint(f"{ddps} i = {i}, reals.shape = {reals.shape}")
         
         with torch.no_grad():
             fakes = accelerator.unwrap_model(model).forward(reals.to(device)).cpu()
@@ -84,9 +92,9 @@ def gen(args):
         
         for b in range(reals.shape[0]):
             waveform = reals[b]
-            torchaudio.save(f"{reals_path}/{i}_{b}.wav", waveform, args.sample_rate)
+            torchaudio.save(f"{reals_path}/{i}_{b}.wav", waveform.cpu(), args.sample_rate)
             waveform = fakes[b]
-            torchaudio.save(f"{fakes_path}/{i}_{b}.wav", waveform, args.sample_rate)
+            torchaudio.save(f"{fakes_path}/{i}_{b}.wav", waveform.cpu(), args.sample_rate)
             
         progress_bar.update(1)
         if (i+1)*args.batch_size > args.n:
@@ -100,7 +108,8 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('name', help='Name prefix for output directories: <name>_reals/ & <name>_fakes/')
     parser.add_argument('model_ckpt', help='TorchScript (.ts) (Generative) Model checkpoint file')
-    parser.add_argument('data_sources', help='Space-separated string listing S3 resources for data')
+    parser.add_argument('data_sources', help='Space-separated string listing either S3 resources or local directories (but not a mix of both!) for real data')
+    parser.add_argument('-d','--debug', action="store_true", help='Enable extra debugging messages')
     parser.add_argument('-b',"--batch_size", default=2, help='batch size')
     parser.add_argument('--n', type=int, default=256, help='Number of real/fake samples to grab/generate, respectively')
     parser.add_argument('--num_workers', type=int, default=12, help='Number of pytorch workers to use in DataLoader')

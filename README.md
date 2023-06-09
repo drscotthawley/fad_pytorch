@@ -22,7 +22,8 @@ pip install fad_pytorch
   sources) for those models. (if you want Speech, submit a PR or an
   Issue; I don’t do speech.)
 - favors ops in PyTorch rather than numpy (or tensorflow)
-- `fad_gen` supports WebDataset (audio data stored in S3 buckets)
+- `fad_gen` supports local data read or WebDataset (audio data stored in
+  S3 buckets)
 - runs on CPU, CUDA, or MPS
 
 ## Instructions:
@@ -31,7 +32,8 @@ This is designed to be run as 3 command-line scripts in succession. The
 latter 2 (`fad_embed` and `fad_score`) are probably what most people
 will want:
 
-1.  `fad_gen`: produces directories of real & fake audio. See `fad_gen`
+1.  `fad_gen`: produces directories of real & fake audio (given real
+    data). See `fad_gen`
     [documentation](https://drscotthawley.github.io/fad_pytorch/fad_gen.html)
     for calling sequence.
 2.  `fad_embed [options] <real_audio_dir> <fake_audio_dir>`: produces
