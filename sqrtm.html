@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.361">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Methods for computing sqrt of a matrix">
+
+<title>fad_pytorch - sqrtm</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="fad_pytorch - sqrtm">
+<meta property="og:description" content="Methods for computing sqrt of a matrix">
+<meta property="og:site-name" content="fad_pytorch">
+<meta name="twitter:title" content="fad_pytorch - sqrtm">
+<meta name="twitter:description" content="Methods for computing sqrt of a matrix">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">fad_pytorch</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools ms-auto">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./sqrtm.html">sqrtm</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fad_pytorch</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fad_gen.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fad_gen</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fad_embed.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fad_embed</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fad_score.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fad_score</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sqrtm.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">sqrtm</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#steve-lis-method" id="toc-steve-lis-method" class="nav-link active" data-scroll-target="#steve-lis-method">Steve Li’s method</a>
+  <ul class="collapse">
+  <li><a href="#matrixsquareroot_li" id="toc-matrixsquareroot_li" class="nav-link" data-scroll-target="#matrixsquareroot_li">MatrixSquareRoot_li</a></li>
+  </ul></li>
+  <li><a href="#subhransu-majis-methods" id="toc-subhransu-majis-methods" class="nav-link" data-scroll-target="#subhransu-majis-methods">Subhransu Maji’s method(s)</a>
+  <ul class="collapse">
+  <li><a href="#sqrt_newton_schulz" id="toc-sqrt_newton_schulz" class="nav-link" data-scroll-target="#sqrt_newton_schulz">sqrt_newton_schulz</a></li>
+  <li><a href="#sqrt_newton_schulz_autograd" id="toc-sqrt_newton_schulz_autograd" class="nav-link" data-scroll-target="#sqrt_newton_schulz_autograd">sqrt_newton_schulz_autograd</a></li>
+  <li><a href="#compute_error" id="toc-compute_error" class="nav-link" data-scroll-target="#compute_error">compute_error</a></li>
+  </ul></li>
+  <li><a href="#error-tests" id="toc-error-tests" class="nav-link" data-scroll-target="#error-tests">Error tests</a></li>
+  <li><a href="#speed-device-tests" id="toc-speed-device-tests" class="nav-link" data-scroll-target="#speed-device-tests">Speed &amp; device tests</a></li>
+  <li><a href="#wrapper-around-our-method-of-choice" id="toc-wrapper-around-our-method-of-choice" class="nav-link" data-scroll-target="#wrapper-around-our-method-of-choice">Wrapper around our method of choice:</a>
+  <ul class="collapse">
+  <li><a href="#sqrtm" id="toc-sqrtm" class="nav-link" data-scroll-target="#sqrtm">sqrtm</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/drscotthawley/fad_pytorch/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">sqrtm</h1>
+</div>
+
+<div>
+  <div class="description">
+    Methods for computing sqrt of a matrix
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<section id="steve-lis-method" class="level2">
+<h2 class="anchored" data-anchor-id="steve-lis-method">Steve Li’s method</h2>
+<hr>
+<p><a href="https://github.com/drscotthawley/fad_pytorch/blob/main/fad_pytorch/sqrtm.py#L19" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="matrixsquareroot_li" class="level3">
+<h3 class="anchored" data-anchor-id="matrixsquareroot_li">MatrixSquareRoot_li</h3>
+<blockquote class="blockquote">
+<pre><code> MatrixSquareRoot_li (*args, **kwargs)</code></pre>
+</blockquote>
+<p>From https://github.com/steveli/pytorch-sqrtm/blob/master/sqrtm.py, which sadly does not install as a package. LICENSE included below Square root of a positive definite matrix.</p>
+<p>NOTE: matrix square root is not differentiable for matrices with zero eigenvalues.</p>
+<p>Steve Li’s test code for the above:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.autograd <span class="im">import</span> gradcheck</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> use_li:</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    k <span class="op">=</span> torch.randn(<span class="dv">1000</span>, <span class="dv">1000</span>).double()</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create a positive definite matrix</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    pd_mat <span class="op">=</span> (k.t().matmul(k)).requires_grad_()</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        sq <span class="op">=</span> sqrtm_li(pd_mat)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"sq =</span><span class="ch">\n</span><span class="st">"</span>,sq)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#print("Running gradcheck...")</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">#test = gradcheck(sqrtm_li, (pd_mat,))</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#print(test)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sq =
+ tensor([[ 2.6360e+01, -5.2896e-01,  4.6020e-01,  ...,  4.6385e-01,
+         -2.5534e-01,  3.3804e-01],
+        [-5.2896e-01,  2.5773e+01, -7.2415e-01,  ..., -2.6621e-02,
+          3.0918e-01, -7.8089e-02],
+        [ 4.6020e-01, -7.2415e-01,  2.5863e+01,  ..., -5.2346e-01,
+          1.4617e-01, -2.5943e-01],
+        ...,
+        [ 4.6385e-01, -2.6621e-02, -5.2346e-01,  ...,  2.6959e+01,
+          3.6158e-01, -4.6653e-01],
+        [-2.5534e-01,  3.0918e-01,  1.4617e-01,  ...,  3.6158e-01,
+          2.6692e+01, -4.4417e-01],
+        [ 3.3804e-01, -7.8089e-02, -2.5943e-01,  ..., -4.6653e-01,
+         -4.4417e-01,  2.8916e+01]], dtype=torch.float64)</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="subhransu-majis-methods" class="level2">
+<h2 class="anchored" data-anchor-id="subhransu-majis-methods">Subhransu Maji’s method(s)</h2>
+<p>From https://github.com/msubhransu/matrix-sqrt</p>
+<hr>
+<p><a href="https://github.com/drscotthawley/fad_pytorch/blob/main/fad_pytorch/sqrtm.py#L118" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sqrt_newton_schulz" class="level3">
+<h3 class="anchored" data-anchor-id="sqrt_newton_schulz">sqrt_newton_schulz</h3>
+<blockquote class="blockquote">
+<pre><code> sqrt_newton_schulz (A, numIters=20, calc_error=False)</code></pre>
+</blockquote>
+<p>Sqrt of matrix via Newton-Schulz algorithm Modified from https://github.com/msubhransu/matrix-sqrt/blob/cc2289a3ed7042b8dbacd53ce8a34da1f814ed2f/matrix_sqrt.py#LL72C1-L87C19 # Forward via Newton-Schulz iterations (non autograd version) # Seems to be slighlty faster and has much lower memory overhead</p>
+<p>… Original code didn’t preserve device, had no batch dim checking -SHH</p>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A</td>
+<td></td>
+<td></td>
+<td>matrix to be sqrt-ified</td>
+</tr>
+<tr class="even">
+<td>numIters</td>
+<td>int</td>
+<td>20</td>
+<td>numIters=7 found via experimentation</td>
+</tr>
+<tr class="odd">
+<td>calc_error</td>
+<td>bool</td>
+<td>False</td>
+<td>setting False disables Maji’s error reporting</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/drscotthawley/fad_pytorch/blob/main/fad_pytorch/sqrtm.py#L88" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="sqrt_newton_schulz_autograd" class="level3">
+<h3 class="anchored" data-anchor-id="sqrt_newton_schulz_autograd">sqrt_newton_schulz_autograd</h3>
+<blockquote class="blockquote">
+<pre><code> sqrt_newton_schulz_autograd (A, numIters=20, calc_error=False)</code></pre>
+</blockquote>
+<p>Modified from from https://people.cs.umass.edu/~smaji/projects/matrix-sqrt/ “The drawback of the autograd approach [i.e., this approach] is that a naive implementation stores all the intermediate results. Thus the memory overhead scales linearly with the number of iterations which is problematic for large matrices.”</p>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>numIters</td>
+<td>int</td>
+<td>20</td>
+<td>found experimentally by SHH, comparing w/ Li’s method</td>
+</tr>
+<tr class="odd">
+<td>calc_error</td>
+<td>bool</td>
+<td>False</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/drscotthawley/fad_pytorch/blob/main/fad_pytorch/sqrtm.py#L81" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="compute_error" class="level3">
+<h3 class="anchored" data-anchor-id="compute_error">compute_error</h3>
+<blockquote class="blockquote">
+<pre><code> compute_error (A, sA)</code></pre>
+</blockquote>
+</section>
+</section>
+<section id="error-tests" class="level2">
+<h2 class="anchored" data-anchor-id="error-tests">Error tests</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sa1, error <span class="op">=</span> sqrt_newton_schulz_autograd( pd_mat.unsqueeze(<span class="dv">0</span>), numIters<span class="op">=</span><span class="dv">20</span>, calc_error<span class="op">=</span><span class="va">True</span> ) </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"sa1 =</span><span class="ch">\n</span><span class="st">"</span>,sa1)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"error ="</span>,error.detach().item())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sa1 =
+ tensor([[[ 2.6360e+01, -5.2896e-01,  4.6021e-01,  ...,  4.6384e-01,
+          -2.5535e-01,  3.3805e-01],
+         [-5.2896e-01,  2.5773e+01, -7.2415e-01,  ..., -2.6632e-02,
+           3.0917e-01, -7.8092e-02],
+         [ 4.6021e-01, -7.2415e-01,  2.5863e+01,  ..., -5.2344e-01,
+           1.4618e-01, -2.5943e-01],
+         ...,
+         [ 4.6384e-01, -2.6632e-02, -5.2344e-01,  ...,  2.6959e+01,
+           3.6150e-01, -4.6653e-01],
+         [-2.5535e-01,  3.0917e-01,  1.4618e-01,  ...,  3.6150e-01,
+           2.6692e+01, -4.4418e-01],
+         [ 3.3805e-01, -7.8092e-02, -2.5943e-01,  ..., -4.6653e-01,
+          -4.4418e-01,  2.8916e+01]]], dtype=torch.float64,
+       grad_fn=&lt;MulBackward0&gt;)
+error = 4.759428080865442e-08</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>sa2, error <span class="op">=</span> sqrt_newton_schulz( pd_mat.unsqueeze(<span class="dv">0</span>), numIters<span class="op">=</span><span class="dv">20</span>, calc_error<span class="op">=</span><span class="va">True</span> ) </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"sa2 =</span><span class="ch">\n</span><span class="st">"</span>,sa2)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"error ="</span>,error.detach().item())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sa2 =
+ tensor([[[ 2.6360e+01, -5.2896e-01,  4.6021e-01,  ...,  4.6384e-01,
+          -2.5535e-01,  3.3805e-01],
+         [-5.2896e-01,  2.5773e+01, -7.2415e-01,  ..., -2.6632e-02,
+           3.0917e-01, -7.8092e-02],
+         [ 4.6021e-01, -7.2415e-01,  2.5863e+01,  ..., -5.2344e-01,
+           1.4618e-01, -2.5943e-01],
+         ...,
+         [ 4.6384e-01, -2.6632e-02, -5.2344e-01,  ...,  2.6959e+01,
+           3.6150e-01, -4.6653e-01],
+         [-2.5535e-01,  3.0917e-01,  1.4618e-01,  ...,  3.6150e-01,
+           2.6692e+01, -4.4418e-01],
+         [ 3.3805e-01, -7.8092e-02, -2.5943e-01,  ..., -4.6653e-01,
+          -4.4418e-01,  2.8916e+01]]], dtype=torch.float64,
+       grad_fn=&lt;MulBackward0&gt;)
+error = 4.759428080865442e-08</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> use_li:</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    diff <span class="op">=</span> sa1 <span class="op">-</span> sq</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"diff = </span><span class="ch">\n</span><span class="st">"</span>,diff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>diff = 
+ tensor([[[-3.7835e-05,  3.8437e-07,  8.7208e-06,  ..., -1.2816e-05,
+          -1.8744e-05,  1.3386e-05],
+         [ 3.8437e-07, -1.9896e-06,  2.2977e-06,  ..., -1.1004e-05,
+          -1.0735e-05, -3.3250e-06],
+         [ 8.7208e-06,  2.2977e-06, -7.5329e-06,  ...,  2.2518e-05,
+           1.9394e-05, -3.9655e-06],
+         ...,
+         [-1.2816e-05, -1.1004e-05,  2.2518e-05,  ..., -8.1416e-05,
+          -7.1274e-05, -1.4799e-06],
+         [-1.8744e-05, -1.0735e-05,  1.9394e-05,  ..., -7.1274e-05,
+          -8.0163e-05, -1.6137e-05],
+         [ 1.3386e-05, -3.3250e-06, -3.9655e-06,  ..., -1.4799e-06,
+          -1.6137e-05, -2.6324e-05]]], dtype=torch.float64,
+       grad_fn=&lt;SubBackward0&gt;)</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> use_li:</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    diff <span class="op">=</span> sa2 <span class="op">-</span> sq</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"diff = </span><span class="ch">\n</span><span class="st">"</span>,diff)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>diff = 
+ tensor([[[-3.7835e-05,  3.8437e-07,  8.7208e-06,  ..., -1.2816e-05,
+          -1.8744e-05,  1.3386e-05],
+         [ 3.8437e-07, -1.9896e-06,  2.2977e-06,  ..., -1.1004e-05,
+          -1.0735e-05, -3.3250e-06],
+         [ 8.7208e-06,  2.2977e-06, -7.5329e-06,  ...,  2.2518e-05,
+           1.9394e-05, -3.9655e-06],
+         ...,
+         [-1.2816e-05, -1.1004e-05,  2.2518e-05,  ..., -8.1416e-05,
+          -7.1274e-05, -1.4799e-06],
+         [-1.8744e-05, -1.0735e-05,  1.9394e-05,  ..., -7.1274e-05,
+          -8.0163e-05, -1.6137e-05],
+         [ 1.3386e-05, -3.3250e-06, -3.9655e-06,  ..., -1.4799e-06,
+          -1.6137e-05, -2.6324e-05]]], dtype=torch.float64,
+       grad_fn=&lt;SubBackward0&gt;)</code></pre>
+</div>
+</div>
+</section>
+<section id="speed-device-tests" class="level2">
+<h2 class="anchored" data-anchor-id="speed-device-tests">Speed &amp; device tests</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> aeiou.core <span class="im">import</span> get_device</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>device <span class="op">=</span> get_device()</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'device = '</span>,device)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>n,m <span class="op">=</span> <span class="dv">1000</span>, <span class="dv">1000</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> torch.no_grad(): </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    k <span class="op">=</span> torch.randn(n, m, device<span class="op">=</span>device)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    pd_mat2 <span class="op">=</span> (k.t().matmul(k)) <span class="co"># Create a positive definite matrix, no grad</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>device =  cuda</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># %%timeit</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> use_li:</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    sq2 <span class="op">=</span> sqrtm_li(pd_mat2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Result of <code>%%timeit</code>:</p>
+<p><code>1.12 s ± 191 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sq2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>NameError: name 'sq2' is not defined</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># %%timeit</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>sq3 <span class="op">=</span> sqrt_newton_schulz(pd_mat2.unsqueeze(<span class="dv">0</span>), numIters<span class="op">=</span><span class="dv">20</span>)[<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Result of <code>%%timeit</code>:</p>
+<p><code>8.8 ms ± 23.1 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)</code></p>
+</section>
+<section id="wrapper-around-our-method-of-choice" class="level2">
+<h2 class="anchored" data-anchor-id="wrapper-around-our-method-of-choice">Wrapper around our method of choice:</h2>
+<p>TLDR, we’ll use Maji’s Newton-Schulz method. Newton-Schulz is an approximate iterative method rather than an exact matrix sqrt, however, with 7 iterations the error is below 1e-5, (presumably significantly) lower than other errors in the problem.</p>
+<hr>
+<p><a href="https://github.com/drscotthawley/fad_pytorch/blob/main/fad_pytorch/sqrtm.py#L195" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sqrtm" class="level3">
+<h3 class="anchored" data-anchor-id="sqrtm">sqrtm</h3>
+<blockquote class="blockquote">
+<pre><code> sqrtm (A, method='maji', numIters=20)</code></pre>
+</blockquote>
+<p>wrapper function for matrix sqrt algorithm of choice. Also we’ll turn off all gradients</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>sqrtm(pd_mat2, method<span class="op">=</span><span class="st">'maji'</span>) <span class="op">-</span> sqrtm(pd_mat2, method<span class="op">=</span><span class="st">'li'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor([[ 1.9073e-06,  1.5616e-05,  9.0003e-06,  ..., -8.9407e-07,
+         -3.7104e-05,  6.7353e-06],
+        [ 1.9193e-05, -6.1035e-05, -4.7386e-06,  ...,  7.8678e-06,
+          2.9802e-05, -5.8711e-06],
+        [ 7.5698e-06, -5.4836e-06, -3.8147e-05,  ...,  2.0236e-05,
+          1.6876e-06, -2.9024e-05],
+        ...,
+        [-3.3975e-06,  3.6955e-06,  2.2471e-05,  ..., -1.1444e-05,
+          3.6955e-06,  1.2971e-05],
+        [-3.6355e-05,  2.5883e-05,  7.5437e-06,  ...,  9.4771e-06,
+         -6.8665e-05,  6.7949e-06],
+        [ 4.2319e-06, -1.3113e-05, -2.6686e-05,  ...,  9.9763e-06,
+          1.1921e-05,  5.7220e-06]], device='cuda:0')</code></pre>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
